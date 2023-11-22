@@ -101,4 +101,9 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-SPECTACULAR_SETTINGS = {"TITLE": "Django E-Commerce Api"}
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Django E-Commerce Api",
+    "DESCRIPTION": "An E-comm product API",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
