@@ -32,3 +32,9 @@ class TestProductLineModel:
         product_line_factory(order=1, product=obj)
         with pytest.raises(ValidationError):
             product_line_factory(order=1, product=obj).clean()
+
+
+class TestProductImageModel:
+    def test_str_method(self, product_image_factory):
+        test = product_image_factory()
+        assert test.__str__() == "test.jpg"
