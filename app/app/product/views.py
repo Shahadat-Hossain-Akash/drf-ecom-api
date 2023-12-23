@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Category, Brand, Product
-from .serializers import CategorySerializer, BrandSerializer, ProductSerializer
+from .models import Category, Product
+from .serializers import CategorySerializer, ProductSerializer
 from drf_spectacular.utils import extend_schema
 from django.db import connection
 from pygments import highlight
@@ -24,15 +24,6 @@ class CategoryViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-class BrandViewSet(viewsets.ViewSet):
-    queryset = Brand.objects.all()
-
-    @extend_schema(responses=BrandSerializer, tags=["brand"])
-    def list(self, req):
-        serializer = BrandSerializer(self.queryset, many=True)
-        return Response(serializer.data)
-
-
 class ProductViewSet(viewsets.ViewSet):
     queryset = Product.objects.all().is_product_active()
     lookup_field = "slug"
@@ -48,7 +39,6 @@ class ProductViewSet(viewsets.ViewSet):
             Product.objects.filter(slug=slug)
             .select_related(
                 "category",
-                "brand",
             )
             .prefetch_related(Prefetch("product_line__product_image"))
             .prefetch_related(Prefetch("product_line__attribute_value__attribute")),
