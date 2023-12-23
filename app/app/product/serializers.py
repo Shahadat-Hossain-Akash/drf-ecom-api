@@ -18,7 +18,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        exclude = ("id", "productline")
+        exclude = ("id", "product_line")
 
 
 class AttributeSerializer(serializers.ModelSerializer):
@@ -94,7 +94,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "attribute",
         )
 
-    def get_attribute(self, obj):
+    def get_attribute(self, obj) -> None:
         attribute = Attribute.objects.filter(product_type__product__id=obj.id)
         return AttributeSerializer(attribute, many=True).data
 

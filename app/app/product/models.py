@@ -100,7 +100,7 @@ class ProductAttributeValue(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        return super(ProductLineAttributeValue, self).save(*args, **kwargs)
+        return super(ProductAttributeValue, self).save(*args, **kwargs)
 
 
 class ProductLineAttributeValue(models.Model):
