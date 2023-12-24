@@ -10,15 +10,25 @@ from .models import (
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source="name")
+
     class Meta:
         model = Category
-        fields = ["name"]
+        fields = ["category", "slug"]
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         exclude = ("id", "product_line")
+
+
+class ProductLineCategorySerializer(serializers.ModelSerializer):
+    product_image = ProductImageSerializer(many=True)
+
+    class Meta:
+        model = ProductLine
+        fields = ["price", "product_image"]
 
 
 class AttributeSerializer(serializers.ModelSerializer):
@@ -53,57 +63,66 @@ class ProductLineSerializer(serializers.ModelSerializer):
             "attribute_value",
         )
 
-    def get_attribute_value(self, obj):
-        attribute_value = AttributeValue.objects.filter(
-            product_line__product__id=obj.id
-        )
-        return AttributeValueSerializer(attribute_value, many=True).data
-
     def to_representation(self, instance):
         data = super().to_representation(instance)
         av_data = data.pop("attribute_value")
         attributes = {}
         for key in av_data:
-            if key["attribute"]["id"] not in attributes:
-                attributes[key["attribute"]["id"]] = [key["attribute_value"]]
+            if key["attribute"]["name"] not in attributes:
+                attributes[key["attribute"]["name"]] = [key["attribute_value"]]
             else:
-                if not isinstance(attributes[key["attribute"]["id"]], list):
-                    attributes[key["attribute"]["id"]] = [
-                        attributes[key["attribute"]["id"]]
+                if not isinstance(attributes[key["attribute"]["name"]], list):
+                    attributes[key["attribute"]["name"]] = [
+                        attributes[key["attribute"]["name"]]
                     ]
 
-                attributes[key["attribute"]["id"]].append(key["attribute_value"])
+                attributes[key["attribute"]["name"]].append(key["attribute_value"])
 
-        data.update({"specifications": attributes})
+        data.update({"properties": attributes})
         return data
 
 
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source="category.name")
     product_line = ProductLineSerializer(many=True)
-    attribute = serializers.SerializerMethodField()
+    attribute_value = AttributeValueSerializer(many=True)
 
     class Meta:
         model = Product
         fields = (
             "name",
             "slug",
+            "pid",
             "description",
             "category",
             "product_line",
-            "attribute",
+            "attribute_value",
         )
-
-    def get_attribute(self, obj) -> None:
-        attribute = Attribute.objects.filter(product_type__product__id=obj.id)
-        return AttributeSerializer(attribute, many=True).data
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        av_data = data.pop("attribute")
+        av_data = data.pop("attribute_value")
         attributes = {}
         for key in av_data:
-            attributes.update({key["id"]: key["name"]})
-        data.update({"type specifications": attributes})
+            attributes.update({key["attribute"]["name"]: key["attribute_value"]})
+        data.update({"attributes": attributes})
 
+        return data
+
+
+class ProductCategorySerializer(serializers.ModelSerializer):
+    product_line = ProductLineCategorySerializer(many=True)
+
+    class Meta:
+        model = Product
+        fields = ("name", "slug", "pid", "created_at", "product_line")
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        item = data.pop("product_line")
+        if item:
+            price = item[0]["price"]
+            image = item[0]["product_image"]
+            data.update({"price": price})
+            data.update({"image": image})
         return data
