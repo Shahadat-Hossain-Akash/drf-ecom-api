@@ -8,7 +8,6 @@ from app.product.models import (
     Attribute,
     AttributeValue,
     ProductLineAttributeValue,
-    ProductAttributeValue,
 )
 
 
